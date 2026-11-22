@@ -1,0 +1,11 @@
+# Only the packages needed to RUN the web interface and CNN inference.
+# requirements.txt is still included unchanged for full training/download workflow.
+numpy>=1.24
+Pillow>=10.0
+torch>=2.3
+tqdm>=4.65
+rasterio>=1.3.9
+fastapi>=0.110,<1
+uvicorn>=0.27,<1
+python-multipart>=0.0.9
+itsdangerous>=2.1

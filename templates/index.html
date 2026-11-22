@@ -1,0 +1,863 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f7f5fb" />
+    <title>DeBlur | Satellite Image Enhancer</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <!-- Inline icon set: works completely offline. -->
+    <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="svg-defs">
+      <defs>
+        <symbol id="ico-grid" viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" rx="1.5" />
+          <rect x="14" y="3" width="7" height="7" rx="1.5" />
+          <rect x="3" y="14" width="7" height="7" rx="1.5" />
+          <rect x="14" y="14" width="7" height="7" rx="1.5" />
+        </symbol>
+        <symbol id="ico-image" viewBox="0 0 24 24">
+          <rect x="3" y="3" width="18" height="18" rx="3" />
+          <circle cx="8.5" cy="8.5" r="1.5" />
+          <path d="m3 17 5-5 3 3 4-4 6 6" />
+        </symbol>
+        <symbol id="ico-clock" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3.5 2" />
+        </symbol>
+        <symbol id="ico-book" viewBox="0 0 24 24">
+          <path
+            d="M12 6c-3-2-6-2-9-1v14c3-1 6-1 9 1m0-14c3-2 6-2 9-1v14c-3-1-6-1-9 1m0-14v14"
+          />
+        </symbol>
+        <symbol id="ico-settings" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="m10 2-.6 2.3-2 1.1-2.3-.8-2 3.4 1.8 1.7v2.4L3 13.8l2 3.4 2.3-.7 2 1.1L10 20h4l.6-2.4 2-1.1 2.3.7 2-3.4-1.8-1.7V9.7L21 8l-2-3.4-2.3.8-2-1.1L14 2z"
+          />
+        </symbol>
+        <symbol id="ico-upload" viewBox="0 0 24 24">
+          <path
+            d="M12 16V4m0 0-4 4m4-4 4 4M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"
+          />
+        </symbol>
+        <symbol id="ico-download" viewBox="0 0 24 24">
+          <path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v3h16v-3" />
+        </symbol>
+        <symbol id="ico-sparkle" viewBox="0 0 24 24">
+          <path d="m12 2 2.3 7.7L22 12l-7.7 2.3L12 22l-2.3-7.7L2 12l7.7-2.3Z" />
+        </symbol>
+        <symbol id="ico-chevron" viewBox="0 0 24 24">
+          <path d="m9 6 6 6-6 6" />
+        </symbol>
+        <symbol id="ico-check" viewBox="0 0 24 24">
+          <path d="m5 12 4 4 10-10" />
+        </symbol>
+        <symbol id="ico-info" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 11v5m0-9v1" />
+        </symbol>
+        <symbol id="ico-alert" viewBox="0 0 24 24">
+          <path d="m12 3 10 18H2Z" />
+          <path d="M12 10v4m0 3v1" />
+        </symbol>
+        <symbol id="ico-arrow" viewBox="0 0 24 24">
+          <path d="M4 12h16m0 0-6-6m6 6-6 6" />
+        </symbol>
+        <symbol id="ico-file" viewBox="0 0 24 24">
+          <path d="M6 2h8l5 5v14H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm8 0v6h6" />
+        </symbol>
+        <symbol id="ico-x" viewBox="0 0 24 24">
+          <path d="M5 5 19 19M19 5 5 19" />
+        </symbol>
+        <symbol id="ico-sliders" viewBox="0 0 24 24">
+          <path d="M4 7h16M4 17h16" />
+          <circle cx="9" cy="7" r="2" />
+          <circle cx="16" cy="17" r="2" />
+        </symbol>
+        <symbol id="ico-menu" viewBox="0 0 24 24">
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </symbol>
+        <symbol id="ico-satellite" viewBox="0 0 24 24">
+          <path
+            d="m8 16 8-8m-9-2 4 4m3 4 4 4M6 2l5 5-4 4-5-5zm12 12 4 4-4 4-4-4zM4 20l5-5"
+          />
+        </symbol>
+      </defs>
+    </svg>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand">
+          <span class="brand-icon"
+            ><svg class="icon"><use href="#ico-satellite" /></svg></span
+          ><span>Terra<span class="brand-accent">SR</span></span>
+        </div>
+        <div class="sidebar-user">
+          <span class="avatar">SR</span
+          ><span
+            ><strong>Satellite imagery</strong
+            ><small>CNN Super-Resolution</small></span
+          ><span class="user-dot"></span>
+        </div>
+        <div class="nav-label">WORKSPACE</div>
+        <nav class="side-nav" aria-label="Main navigation">
+          <button class="nav-item" data-view="dashboard">
+            <svg class="icon"><use href="#ico-grid" /></svg
+            ><span>Dashboard</span>
+          </button>
+          <button class="nav-item active" data-view="enhance">
+            <svg class="icon"><use href="#ico-image" /></svg
+            ><span>Enhance image</span><span class="nav-highlight"></span>
+          </button>
+          <button class="nav-item" data-view="results">
+            <svg class="icon"><use href="#ico-clock" /></svg
+            ><span>Recent results</span>
+          </button>
+          <button class="nav-item" data-view="guide">
+            <svg class="icon"><use href="#ico-book" /></svg
+            ><span>How to use</span>
+          </button>
+        </nav>
+        <div class="nav-label nav-secondary">PREFERENCES</div>
+        <nav class="side-nav" aria-label="Preferences">
+          <button class="nav-item" data-view="settings">
+            <svg class="icon"><use href="#ico-settings" /></svg
+            ><span>Model settings</span>
+          </button>
+        </nav>
+        <div class="sidebar-bottom">
+          <div class="side-tip">
+            <span class="side-tip-icon"
+              ><svg class="icon"><use href="#ico-info" /></svg></span
+            ><strong>Need a model file?</strong>
+            <p>
+              Copy your trained <code>best.pt</code> to <code>runs/exp1/</code>.
+            </p>
+            <button class="text-button" data-view="guide">
+              View setup guide
+              <svg class="icon mini"><use href="#ico-arrow" /></svg>
+            </button>
+          </div>
+          <div class="sidebar-caption">DeBlur · Local research application</div>
+        </div>
+      </aside>
+      <div class="sidebar-scrim" id="scrim"></div>
+
+      <div class="main-area">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button
+              id="mobile-menu"
+              class="icon-button mobile-only"
+              aria-label="Open menu"
+            >
+              <svg class="icon"><use href="#ico-menu" /></svg></button
+            ><span class="breadcrumb">Workspace</span
+            ><svg class="icon breadcrumb-arrow"><use href="#ico-chevron" /></svg
+            ><strong id="breadcrumb-active">Enhance image</strong>
+          </div>
+          <div class="topbar-right">
+            <span class="topbar-note"
+              ><span class="online-dot"></span> Running on your computer</span
+            ><span class="topbar-badge">CNN</span>
+          </div>
+        </header>
+        <main class="content" id="main">
+          <div class="global-alert hidden" id="global-alert" role="status">
+            <svg class="icon"><use href="#ico-alert" /></svg
+            ><span id="global-alert-text"></span
+            ><button class="link-underlined" data-view="settings">
+              Open settings
+            </button>
+          </div>
+
+          <section class="view" id="view-dashboard">
+            <div class="page-intro">
+              <div>
+                <span class="eyebrow">PROJECT OVERVIEW</span>
+                <h1>Satellite image enhancement</h1>
+                <p>
+                  Track your local model, process Sentinel-2 imagery and access
+                  recent results.
+                </p>
+              </div>
+              <button class="btn btn-primary" data-view="enhance">
+                <svg class="icon"><use href="#ico-sparkle" /></svg> Enhance an
+                image
+              </button>
+            </div>
+            <div class="stat-grid">
+              <div class="stat-card coral">
+                <div class="stat-label">Model checkpoint</div>
+                <div class="stat-value" id="dash-model">Checking...</div>
+                <small>Based on your saved best.pt</small
+                ><svg class="stat-watermark icon"><use href="#ico-file" /></svg>
+              </div>
+              <div class="stat-card blue">
+                <div class="stat-label">Images enhanced</div>
+                <div class="stat-value" id="dash-count">0</div>
+                <small>In this browser session</small
+                ><svg class="stat-watermark icon">
+                  <use href="#ico-image" />
+                </svg>
+              </div>
+              <div class="stat-card mint">
+                <div class="stat-label">Last upscale</div>
+                <div class="stat-value" id="dash-scale">—</div>
+                <small>Scale read from trained model</small
+                ><svg class="stat-watermark icon">
+                  <use href="#ico-sparkle" />
+                </svg>
+              </div>
+            </div>
+            <div class="two-col">
+              <section class="panel">
+                <div class="panel-heading">
+                  <div>
+                    <h2>From low resolution to enhanced imagery</h2>
+                    <p>The three-step workflow</p>
+                  </div>
+                </div>
+                <div class="flow-steps">
+                  <div class="flow-step">
+                    <span class="step-bubble">01</span>
+                    <div>
+                      <strong>Upload</strong>
+                      <p>
+                        Select an RGB satellite image, GeoTIFF, or a prepared
+                        NPZ test tile.
+                      </p>
+                    </div>
+                  </div>
+                  <div class="step-line"></div>
+                  <div class="flow-step">
+                    <span class="step-bubble">02</span>
+                    <div>
+                      <strong>Run CNN</strong>
+                      <p>
+                        Your trained model predicts the higher-resolution pixel
+                        grid.
+                      </p>
+                    </div>
+                  </div>
+                  <div class="step-line"></div>
+                  <div class="flow-step">
+                    <span class="step-bubble">03</span>
+                    <div>
+                      <strong>Compare &amp; save</strong>
+                      <p>Inspect bicubic versus CNN and download the result.</p>
+                    </div>
+                  </div>
+                </div>
+                <button class="btn btn-primary" data-view="enhance">
+                  Start enhancement
+                  <svg class="icon"><use href="#ico-arrow" /></svg>
+                </button>
+              </section>
+              <section class="panel insight-panel">
+                <div class="panel-heading">
+                  <div>
+                    <h2>What the model does</h2>
+                    <p>Important for interpreting results</p>
+                  </div>
+                </div>
+                <div class="insight-icon">
+                  <svg class="icon"><use href="#ico-satellite" /></svg>
+                </div>
+                <h3>Learned detail, not a new sensor capture.</h3>
+                <p>
+                  Super-resolution increases output image dimensions and
+                  estimates fine structure. It does not reveal verified
+                  information beyond the original satellite measurement.
+                </p>
+                <p>
+                  For geospatial analysis, use an RGB GeoTIFF and validate the
+                  predictions against independent high-resolution references.
+                </p>
+              </section>
+            </div>
+          </section>
+
+          <section class="view active" id="view-enhance">
+            <div class="page-intro">
+              <div>
+                <span class="eyebrow">IMAGE ENHANCEMENT</span>
+                <h1>Make every pixel count.</h1>
+                <p>
+                  Upload your low-resolution satellite image, let your trained
+                  CNN enhance it, and download the result.
+                </p>
+              </div>
+              <span class="page-tag"
+                ><svg class="icon"><use href="#ico-sparkle" /></svg> CNN
+                workspace</span
+              >
+            </div>
+            <div class="stat-grid enhance-stats">
+              <div class="stat-card coral">
+                <div class="stat-label">Trained model</div>
+                <div class="stat-value" id="enh-model">Checking...</div>
+                <small id="enh-model-desc">best.pt checkpoint</small
+                ><svg class="stat-watermark icon"><use href="#ico-file" /></svg>
+              </div>
+              <div class="stat-card blue">
+                <div class="stat-label">Images processed</div>
+                <div class="stat-value" id="enh-count">0</div>
+                <small>This browser session</small
+                ><svg class="stat-watermark icon">
+                  <use href="#ico-image" />
+                </svg>
+              </div>
+              <div class="stat-card mint">
+                <div class="stat-label">Input formats</div>
+                <div class="stat-value">PNG · TIFF</div>
+                <small>Plus JPG and NPZ test tiles</small
+                ><svg class="stat-watermark icon">
+                  <use href="#ico-upload" />
+                </svg>
+              </div>
+            </div>
+            <div class="workspace-grid">
+              <section class="panel upload-panel">
+                <div class="panel-heading">
+                  <div>
+                    <div class="step-title">
+                      <span class="step-counter">01</span>
+                      <h2>Upload a low-resolution image</h2>
+                    </div>
+                    <p>
+                      Choose the image you want to convert into a
+                      higher-resolution output.
+                    </p>
+                  </div>
+                  <span class="tag-outline">Required</span>
+                </div>
+                <div
+                  class="dropzone"
+                  id="dropzone"
+                  tabindex="0"
+                  role="button"
+                  aria-label="Choose low-resolution image to upload"
+                >
+                  <input
+                    type="file"
+                    id="image-file"
+                    accept=".png,.jpg,.jpeg,.tif,.tiff,.npz"
+                    aria-label="Low-resolution image file"
+                    hidden
+                  />
+                  <div class="upload-icon">
+                    <svg class="icon"><use href="#ico-upload" /></svg>
+                  </div>
+                  <strong>Drag &amp; drop your image here</strong>
+                  <p>or choose a file from your computer</p>
+                  <button
+                    class="btn btn-outline"
+                    id="choose-file"
+                    type="button"
+                  >
+                    Browse files
+                    <svg class="icon"><use href="#ico-arrow" /></svg>
+                  </button>
+                  <small>PNG, JPG, TIFF, GeoTIFF, NPZ · Up to 80 MB</small>
+                </div>
+                <div class="selected-file hidden" id="selected-file">
+                  <div class="file-preview" id="file-preview">
+                    <svg class="icon"><use href="#ico-file" /></svg>
+                  </div>
+                  <div class="file-description">
+                    <strong id="filename"></strong
+                    ><span id="file-meta">Ready to enhance</span>
+                  </div>
+                  <button
+                    type="button"
+                    class="icon-button"
+                    id="remove-file"
+                    aria-label="Remove selected image"
+                  >
+                    <svg class="icon"><use href="#ico-x" /></svg>
+                  </button>
+                </div>
+                <div class="upload-note">
+                  <svg class="icon"><use href="#ico-info" /></svg
+                  ><span
+                    ><strong>Best input:</strong> Sentinel-2 L2A RGB GeoTIFF (10
+                    m), or an LR patch from your dataset. Regular photos are
+                    outside the trained model's main domain.</span
+                  >
+                </div>
+              </section>
+              <section class="panel action-panel">
+                <div class="panel-heading">
+                  <div>
+                    <div class="step-title">
+                      <span class="step-counter">02</span>
+                      <h2>Enhance with your CNN</h2>
+                    </div>
+                    <p>
+                      No training is required here. This uses your saved model
+                      weights.
+                    </p>
+                  </div>
+                </div>
+                <div class="model-ready">
+                  <span class="model-status-dot" id="model-dot"></span>
+                  <div>
+                    <strong id="model-ready-title">Checking model...</strong>
+                    <p id="model-ready-info">Looking for runs/exp1/best.pt</p>
+                  </div>
+                </div>
+                <div class="conversion-steps">
+                  <span>Low-resolution image</span
+                  ><svg class="icon"><use href="#ico-arrow" /></svg
+                  ><span>Trained CNN</span
+                  ><svg class="icon"><use href="#ico-arrow" /></svg
+                  ><span>Enhanced output</span>
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-primary btn-large"
+                  id="enhance-button"
+                >
+                  <svg class="icon"><use href="#ico-sparkle" /></svg
+                  ><span id="enhance-button-text">Enhance image now</span
+                  ><svg class="icon trailing"><use href="#ico-arrow" /></svg>
+                </button>
+                <div
+                  class="process-message hidden"
+                  id="process-message"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <span class="process-loader" id="process-loader"></span
+                  ><span id="process-message-text"></span>
+                </div>
+                <button class="plain-link" data-view="settings">
+                  <svg class="icon"><use href="#ico-sliders" /></svg> Advanced
+                  model &amp; image settings
+                </button>
+                <p class="action-hint">
+                  The scale (2× or 3×) comes from the loaded checkpoint, not
+                  from a UI selection.
+                </p>
+              </section>
+            </div>
+            <section
+              class="panel result-panel hidden"
+              id="result-panel"
+              aria-live="polite"
+            >
+              <div class="panel-heading result-heading">
+                <div>
+                  <div class="step-title">
+                    <span class="step-counter is-green">03</span>
+                    <h2>Your enhanced image is ready</h2>
+                  </div>
+                  <p>
+                    Review the three versions below, then download the one you
+                    need.
+                  </p>
+                </div>
+                <span class="success-pill"
+                  ><svg class="icon"><use href="#ico-check" /></svg>
+                  Completed</span
+                >
+              </div>
+              <div class="result-metrics">
+                <div>
+                  <small>Input dimensions</small
+                  ><strong id="metric-input">—</strong>
+                </div>
+                <div>
+                  <small>Enhanced dimensions</small
+                  ><strong id="metric-output">—</strong>
+                </div>
+                <div>
+                  <small>Upscale</small><strong id="metric-scale">—</strong>
+                </div>
+                <div>
+                  <small>Processing time</small
+                  ><strong id="metric-time">—</strong>
+                </div>
+              </div>
+              <div class="image-trio">
+                <div class="image-card">
+                  <div class="image-card-title">
+                    <span class="image-card-number">A</span> Original LR
+                  </div>
+                  <img
+                    id="preview-original"
+                    alt="Low-resolution input image"
+                  /><small>The image you uploaded</small>
+                </div>
+                <div class="image-card">
+                  <div class="image-card-title">
+                    <span class="image-card-number">B</span> Bicubic baseline
+                  </div>
+                  <img
+                    id="preview-bicubic"
+                    alt="Bicubic interpolation baseline"
+                  /><small>Standard image enlargement</small>
+                </div>
+                <div class="image-card image-card-featured">
+                  <div class="image-card-title">
+                    <span class="image-card-number">C</span> CNN
+                    super-resolution
+                    <span class="small-primary-tag">YOUR OUTPUT</span>
+                  </div>
+                  <img
+                    id="preview-enhanced"
+                    alt="CNN enhanced high-resolution image"
+                  /><small>Output of your trained model</small>
+                </div>
+              </div>
+              <div class="comparison-heading">
+                <div>
+                  <h3>Before / after comparison</h3>
+                  <p>Drag the purple slider to see the difference.</p>
+                </div>
+                <label for="compare-type" class="visually-hidden"
+                  >Compare against</label
+                ><select id="compare-type">
+                  <option value="bicubic">Bicubic vs CNN</option>
+                  <option value="input">Original vs CNN</option>
+                </select>
+              </div>
+              <div class="compare-box" id="compare-box">
+                <img id="compare-after" alt="After: CNN enhancement" /><img
+                  id="compare-before"
+                  alt="Before: bicubic or original image"
+                />
+                <div id="compare-divider" class="compare-divider">
+                  <span
+                    ><svg class="icon"><use href="#ico-chevron" /></svg
+                    ><svg class="icon flip"><use href="#ico-chevron" /></svg
+                  ></span>
+                </div>
+                <div class="compare-tag compare-tag-left">BEFORE</div>
+                <div class="compare-tag compare-tag-right">CNN OUTPUT</div>
+                <input
+                  id="compare-range"
+                  type="range"
+                  min="0"
+                  max="100"
+                  value="50"
+                  aria-label="Show more or less of the before image"
+                />
+              </div>
+              <div class="reference-metrics hidden" id="reference-metrics">
+                <div class="subheading">
+                  Ground-truth reference metrics (NPZ file)
+                </div>
+                <div class="reference-grid">
+                  <div>
+                    <small>CNN PSNR</small><strong id="ref-psnr"></strong>
+                  </div>
+                  <div>
+                    <small>CNN SSIM</small><strong id="ref-ssim"></strong>
+                  </div>
+                  <div>
+                    <small>PSNR gain vs bicubic</small
+                    ><strong id="ref-gain"></strong>
+                  </div>
+                </div>
+              </div>
+              <div class="download-panel">
+                <div>
+                  <h3>Download your high-resolution image</h3>
+                  <p id="download-hint">
+                    Choose the original output format or a simple preview.
+                  </p>
+                </div>
+                <div class="download-actions">
+                  <a id="download-native" class="btn btn-primary" href="#"
+                    ><svg class="icon"><use href="#ico-download" /></svg
+                    ><span id="download-native-label"
+                      >Download enhanced image</span
+                    ></a
+                  ><a id="download-preview" class="btn btn-outline" href="#"
+                    ><svg class="icon"><use href="#ico-download" /></svg>
+                    Download PNG preview</a
+                  >
+                </div>
+              </div>
+              <p class="science-note">
+                <svg class="icon"><use href="#ico-info" /></svg> A higher pixel
+                count is a CNN estimate of detail—not a new higher-resolution
+                satellite observation. Validate with high-resolution reference
+                imagery.
+              </p>
+            </section>
+          </section>
+
+          <section class="view" id="view-results">
+            <div class="page-intro">
+              <div>
+                <span class="eyebrow">PROCESSING HISTORY</span>
+                <h1>Recent results</h1>
+                <p>Open or download your recent super-resolution outputs.</p>
+              </div>
+              <button class="btn btn-primary" data-view="enhance">
+                <svg class="icon"><use href="#ico-sparkle" /></svg> New
+                enhancement
+              </button>
+            </div>
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <h2>Latest enhanced images</h2>
+                  <p>
+                    Up to four outputs are kept for this browser while the
+                    application is running.
+                  </p>
+                </div>
+              </div>
+              <div class="history-list" id="history-list">
+                <div class="empty-state">
+                  <svg class="icon"><use href="#ico-image" /></svg>
+                  <h3>No results yet</h3>
+                  <p>Enhance an image to see it appear here.</p>
+                  <button class="btn btn-primary" data-view="enhance">
+                    Upload your first image
+                  </button>
+                </div>
+              </div>
+            </section>
+          </section>
+
+          <section class="view" id="view-guide">
+            <div class="page-intro">
+              <div>
+                <span class="eyebrow">HELP CENTER</span>
+                <h1>How to use DeBlur</h1>
+                <p>
+                  A straightforward guide to using the app and understanding the
+                  settings.
+                </p>
+              </div>
+            </div>
+            <div class="guide-grid">
+              <section class="panel">
+                <h2>1. Add your trained model</h2>
+                <p>
+                  Find <code>best.pt</code> from your project training run and
+                  place it in the following folder inside DeBlur:
+                </p>
+                <pre>runs/exp1/best.pt</pre>
+                <p>
+                  Alternatively, enter the full file path in
+                  <strong>Model settings</strong>. The app cannot predict
+                  without actual trained weights.
+                </p>
+              </section>
+              <section class="panel">
+                <h2>2. Upload and enhance</h2>
+                <p>
+                  Click <strong>Enhance image</strong> in the left menu. Drag
+                  your low-resolution image to the upload box or choose
+                  <strong>Browse files</strong>. Click the purple
+                  <strong>Enhance image now</strong> button.
+                </p>
+                <p>
+                  Wait for the completion message. You will see original,
+                  bicubic and CNN versions.
+                </p>
+              </section>
+              <section class="panel">
+                <h2>3. Compare and download</h2>
+                <p>
+                  Slide the before/after comparison control. Click
+                  <strong>Download enhanced image</strong> to save the output.
+                  If you uploaded a GeoTIFF, you will receive a georeferenced
+                  TIFF; otherwise, you receive a PNG.
+                </p>
+              </section>
+              <section class="panel">
+                <h2>Which file should I upload?</h2>
+                <p>
+                  <strong>Recommended:</strong> 3-band Sentinel-2 L2A RGB
+                  GeoTIFF made with your project's <code>fetch_s2_rgb.py</code>.
+                  PNG/JPG inputs are also supported. <code>.npz</code> test
+                  tiles can include both <code>lr</code> and
+                  <code>hr</code> arrays for evaluation.
+                </p>
+                <p>
+                  To calculate PSNR/SSIM, provide the aligned HR reference in an
+                  NPZ pair. They cannot be measured from one LR image alone.
+                </p>
+              </section>
+            </div>
+            <section class="panel guide-wide">
+              <h2>Current model limitations</h2>
+              <p>
+                The original project trains a 2× CNN by default, so a 10 m
+                Sentinel-2 input produces a nominal 5 m output grid. A 3×
+                checkpoint requires compatible 3× training. The extra pixels are
+                learned estimates; geographic metadata are preserved for TIFF
+                outputs, but the model cannot guarantee physically true fine
+                detail.
+              </p>
+              <button class="btn btn-primary" data-view="enhance">
+                Go to image enhancer
+                <svg class="icon"><use href="#ico-arrow" /></svg>
+              </button>
+            </section>
+          </section>
+
+          <section class="view" id="view-settings">
+            <div class="page-intro">
+              <div>
+                <span class="eyebrow">PREFERENCES</span>
+                <h1>Model &amp; image settings</h1>
+                <p>
+                  Most users can keep the defaults. Change these only when your
+                  checkpoint or satellite product requires them.
+                </p>
+              </div>
+            </div>
+            <section class="panel settings-panel">
+              <form id="settings-form">
+                <div class="settings-heading">
+                  <h2>Model configuration</h2>
+                  <p>These settings affect every new inference.</p>
+                </div>
+                <div class="settings-grid">
+                  <label class="field field-full"
+                    ><span
+                      >Trained checkpoint path
+                      <span class="required-mark">*</span></span
+                    ><input
+                      name="checkpoint"
+                      id="setting-checkpoint"
+                      type="text"
+                      value="runs/exp1/best.pt"
+                      spellcheck="false"
+                    /><small
+                      >Where your own best.pt lives, relative to this app folder
+                      or as a full Windows path.</small
+                    ></label
+                  ><label class="field"
+                    ><span>Processing device</span
+                    ><select name="processor" id="setting-processor">
+                      <option value="Auto">Auto (recommended)</option>
+                      <option value="CUDA">NVIDIA CUDA GPU</option>
+                      <option value="CPU">CPU only</option></select
+                    ><small
+                      >Auto chooses CUDA when available, otherwise CPU.</small
+                    ></label
+                  ><label class="field"
+                    ><span>Input interpretation</span
+                    ><select name="mode" id="setting-mode">
+                      <option value="auto">Auto (recommended)</option>
+                      <option value="s2">Sentinel-2 reflectance DN</option>
+                      <option value="uint8">8-bit RGB (0–255)</option>
+                      <option value="float">Float values (0–1)</option></select
+                    ><small
+                      >Auto uses the file datatype to select
+                      preprocessing.</small
+                    ></label
+                  ><label class="field"
+                    ><span>RGB band indices</span
+                    ><input
+                      name="bands"
+                      id="setting-bands"
+                      type="text"
+                      value="1,2,3"
+                    /><small
+                      >GeoTIFF band order. Use 3,2,1 if your TIFF is Blue,
+                      Green, Red.</small
+                    ></label
+                  ><label class="field"
+                    ><span>Reflectance stretch maximum</span
+                    ><input
+                      name="refl_max"
+                      id="setting-refl"
+                      type="number"
+                      min="0.01"
+                      max="2"
+                      step="0.01"
+                      value="0.3"
+                    /><small
+                      >Must match your training normalization, default
+                      0.3.</small
+                    ></label
+                  ><label class="field"
+                    ><span>Reflectance offset (optional)</span
+                    ><input
+                      name="offset"
+                      id="setting-offset"
+                      type="number"
+                      step="0.01"
+                      placeholder="Automatic from TIFF tags"
+                    /><small
+                      >Usually leave blank. The TIFF tag is read when
+                      available.</small
+                    ></label
+                  ><label class="field"
+                    ><span>Inference tile size</span
+                    ><select name="tile" id="setting-tile">
+                      <option>64</option>
+                      <option>96</option>
+                      <option selected>128</option>
+                      <option>160</option>
+                      <option>192</option>
+                      <option>256</option></select
+                    ><small>Smaller tiles use less memory.</small></label
+                  ><label class="field"
+                    ><span>Tile overlap (pixels)</span
+                    ><input
+                      name="overlap"
+                      id="setting-overlap"
+                      type="number"
+                      min="0"
+                      max="32"
+                      step="1"
+                      value="16"
+                    /><small
+                      >Overlapping borders reduce visible seams.</small
+                    ></label
+                  ><label class="field"
+                    ><span>Maximum output size (MP)</span
+                    ><input
+                      name="max_output_mp"
+                      id="setting-maxmp"
+                      type="number"
+                      min="1"
+                      max="30"
+                      step="1"
+                      value="8"
+                    /><small
+                      >Prevents accidental very large outputs.</small
+                    ></label
+                  >
+                </div>
+                <div class="settings-actions">
+                  <button type="submit" class="btn btn-primary">
+                    <svg class="icon"><use href="#ico-check" /></svg> Save
+                    settings</button
+                  ><button
+                    type="button"
+                    class="btn btn-outline"
+                    id="reset-settings"
+                  >
+                    Reset to defaults</button
+                  ><span
+                    class="settings-feedback"
+                    id="settings-feedback"
+                    role="status"
+                  ></span>
+                </div>
+              </form>
+            </section>
+          </section>
+        </main>
+        <footer class="main-footer">
+          <span>DeBlur · Sentinel-2 Super-Resolution</span
+          ><span>Local inference · Powered by your trained PyTorch CNN</span>
+        </footer>
+      </div>
+    </div>
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>

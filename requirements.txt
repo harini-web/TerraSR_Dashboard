@@ -1,0 +1,14 @@
+numpy>=1.24
+scipy>=1.10
+torch>=2.3
+scikit-image>=0.21
+matplotlib>=3.7
+pillow>=10.0
+tqdm>=4.65
+# --- download stage only ---
+rasterio>=1.3.9
+pyproj>=3.6
+pystac-client>=0.7
+planetary-computer>=1.0
+# --- optional: LPIPS metric (downloads AlexNet weights on first use) ---
+# lpips>=0.1.4
