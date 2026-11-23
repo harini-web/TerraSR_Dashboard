@@ -157,4 +157,4 @@ DeBlur_Dashboard/
 ├── tests/
 └── runs/exp1/            # Add the best.pt from YOUR training here
 ```
-IDSE Project files drive link :  https://drive.google.com/drive/folders/1NCiJnFW7cMSwlWhJ0eqBGq1En-_ogYGt?usp=sharing
+IDSE Project tranined model files drive link :  https://drive.google.com/drive/folders/1NCiJnFW7cMSwlWhJ0eqBGq1En-_ogYGt?usp=sharing
